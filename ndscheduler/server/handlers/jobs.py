@@ -45,7 +45,6 @@ class Handler(base.BaseHandler):
         return_dict.update(utils.get_cron_strings(job))
         return return_dict
 
-    @tornado.concurrent.run_on_executor
     def get_jobs(self):
         """Wrapper to run _get_jobs() on a thread executor.
 
@@ -56,12 +55,13 @@ class Handler(base.BaseHandler):
             }
         :rtype: dict
         """
+
         return self._get_jobs()
 
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def get_jobs_yield(self):
         """Wrapper for get_jobs in async mode."""
-        return_json = yield self.get_jobs()
+        return_json = self.get_jobs()
         self.finish(return_json)
 
     def _get_job(self, job_id):
@@ -80,7 +80,6 @@ class Handler(base.BaseHandler):
             return {'error': 'Job not found: %s' % job_id}
         return self._build_job_dict(job)
 
-    @tornado.concurrent.run_on_executor
     def get_job(self, job_id):
         """Wrapper to run _get_jobs() on a thread executor.
 
@@ -90,18 +89,17 @@ class Handler(base.BaseHandler):
         """
         return self._get_job(job_id)
 
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def get_job_yield(self, job_id):
         """Wrapper for get_job() to run in async mode.
 
         :param str job_id: Job id.
         """
-        return_json = yield self.get_job(job_id)
+        return_json = self.get_job(job_id)
         self.finish(return_json)
 
     @tornado.web.removeslash
-    @tornado.web.asynchronous
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def get(self, job_id=None):
         """Returns a job or multiple jobs.
 
@@ -117,6 +115,7 @@ class Handler(base.BaseHandler):
             self.get_job_yield(job_id)
 
     @tornado.web.removeslash
+    @tornado.gen.coroutine
     def post(self):
         """Adds a job.
 
@@ -155,18 +154,16 @@ class Handler(base.BaseHandler):
         self.datastore.add_audit_log(job_id, job['name'], constants.AUDIT_LOG_DELETED,
                                      user=self.username, description=json.dumps(job))
 
-    @tornado.concurrent.run_on_executor
     def delete_job(self, job_id):
         """Wrapper for _delete_job() to run on a threaded executor."""
         self._delete_job(job_id)
 
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def delete_job_yield(self, job_id):
-        yield self.delete_job(job_id)
+        self.delete_job(job_id)
 
     @tornado.web.removeslash
-    @tornado.web.asynchronous
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def delete(self, job_id):
         """Deletes a job.
 
@@ -239,7 +236,6 @@ class Handler(base.BaseHandler):
             job_id, job['name'], constants.AUDIT_LOG_MODIFIED,
             user=self.username, description=self._generate_description_for_modify(old_job, job))
 
-    @tornado.concurrent.run_on_executor
     def modify_job(self, job_id):
         """Wrapper for _modify_job() to run on threaded executor.
 
@@ -247,17 +243,16 @@ class Handler(base.BaseHandler):
         """
         self._modify_job(job_id)
 
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def modify_job_yield(self, job_id):
         """Wrapper for modify_job() to run in async mode.
 
         :param str job_id: Job id.
         """
-        yield self.modify_job(job_id)
+        self.modify_job(job_id)
 
     @tornado.web.removeslash
-    @tornado.web.asynchronous
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def put(self, job_id):
         """Modifies a job.
 
@@ -275,6 +270,7 @@ class Handler(base.BaseHandler):
         self.finish(response)
 
     @tornado.web.removeslash
+    @tornado.gen.coroutine
     def patch(self, job_id):
         """Pauses a job.
 
@@ -302,6 +298,7 @@ class Handler(base.BaseHandler):
         self.write(response)
 
     @tornado.web.removeslash
+    @tornado.gen.coroutine
     def options(self, job_id):
         """Resumes a job.
 
