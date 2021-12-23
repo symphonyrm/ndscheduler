@@ -1,6 +1,7 @@
 """Serves the single page app web ui."""
 
 import json
+import tornado.gen
 
 from ndscheduler import settings
 from ndscheduler import utils
@@ -10,6 +11,7 @@ from ndscheduler.server.handlers import base
 class Handler(base.BaseHandler):
     """Index page request handler."""
 
+    @tornado.gen.coroutine
     def get(self):
         """Serve up the single page app for scheduler dashboard."""
 
