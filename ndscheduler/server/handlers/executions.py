@@ -154,7 +154,7 @@ class Handler(base.BaseHandler):
 
     @tornado.web.removeslash
     @tornado.gen.coroutine
-    async def post(self, job_id):
+    def post(self, job_id):
         """Runs a job.
 
         Handles an endpoint:
